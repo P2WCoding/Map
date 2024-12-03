@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery -->
   <style>
     body {
       margin: 0;
@@ -107,8 +109,8 @@
             // Add routing control with Mapbox
             routingControl = L.Routing.control({
               waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
-              router: new L.Routing.Mapbox('pk.eyJ1Ijoibmdvb2R3aW40NTMiLCJhIjoiY200OGl0end2MDAxbzJqb3BkZ2x4MmFrZSJ9.MmBiTIM3QapCykGVoQmvXA', {
-                profile: 'mapbox/driving', // Change to 'mapbox/walking' or 'mapbox/cycling' if needed
+              router: L.Routing.mapbox('pk.eyJ1Ijoibmdvb2R3aW40NTMiLCJhIjoiY200OGl0end2MDAxbzJqb3BkZ2x4MmFrZSJ9.MmBiTIM3QapCykGVoQmvXA', {
+                profile: 'mapbox/driving', // Use 'mapbox/walking' or 'mapbox/cycling' if needed
               }),
               routeWhileDragging: false,
               lineOptions: {
