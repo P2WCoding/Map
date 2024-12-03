@@ -119,19 +119,18 @@
                 map.removeControl(routingControl);
               }
 
-              // Add routing control with Mapbox
-              routingControl = L.Routing.control({
-                waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
-                router: L.Routing.mapbox('sk.eyJ1Ijoibmdvb2R3aW40NTMiLCJhIjoiY200OGpoZDd1MDA4dTJxcHNjZ2JqNG53bSJ9.uyVf3rOiysPwlXaml9d4gQ', {
-                  profile: 'mapbox/driving', // Use 'mapbox/walking' or 'mapbox/cycling' if needed
-                }),
-                routeWhileDragging: false,
-                lineOptions: {
-                  styles: [{ color: '#007bff', weight: 6 }],
-                },
-                show: false, // Hides the default UI
-              })
-                .on('routesfound', function (e) {
+              // Use a public access token (not a secret key)
+				routingControl = L.Routing.control({
+				  waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
+				  router: L.Routing.mapbox('pk.eyJ1Ijoibmdvb2R3aW40NTMiLCJhIjoiY200OGtkcmZ0MDBpNDJscHBvbTVieGlybCJ9.9-tSTUJia2rrlqvN4jUOAg', {
+					profile: 'mapbox/driving', // Ensure the token has the right permissions for this profile
+				  }),
+				  routeWhileDragging: false,
+				  lineOptions: {
+					styles: [{ color: '#007bff', weight: 6 }],
+				  },
+				  show: false,
+				}).on('routesfound', function (e) {
                   const route = e.routes[0];
                   if (!route || !route.legs[0]) {
                     console.error("No route data available.");
