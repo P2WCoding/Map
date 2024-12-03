@@ -44,11 +44,24 @@
       background: #0056b3;
     }
 
-    /* Hide unnecessary Leaflet routing controls */
+    /* Hide default Leaflet routing container */
     .leaflet-control-container .leaflet-routing-container {
-		display: none !important;
-	}
-</style>
+      display: none !important;
+    }
+
+    /* Custom route instructions box */
+    #routeInstructions {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      max-height: 30%;
+      overflow-y: auto;
+    }
+
+    #routeInstructions h3 {
+      margin-top: 0;
+    }
+  </style>
 </head>
 <body>
   <!-- Controls -->
@@ -58,6 +71,12 @@
 
   <!-- Map Container -->
   <div id="map"></div>
+
+  <!-- Route Instructions -->
+  <div id="routeInstructions">
+    <h3>Directions</h3>
+    <div id="instructionsContent">Click "Get Directions to Us" to see the route.</div>
+  </div>
 
   <script>
     const map = L.map('map').setView([39.6618797, -79.9539762], 14); // Default view at your location
@@ -75,42 +94,50 @@
     let routingControl;
 
     function getDirections() {
-	  if (navigator.geolocation) {
-		navigator.geolocation.getCurrentPosition(
-		  (position) => {
-			const { latitude, longitude } = position.coords;
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
 
-			// Remove existing route if any
-			if (routingControl) {
-			  map.removeControl(routingControl);
-			}
+            // Remove existing route if any
+            if (routingControl) {
+              map.removeControl(routingControl);
+            }
 
-			// Add routing control
-			routingControl = L.Routing.control({
-			  waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
-			  routeWhileDragging: false,
-			  lineOptions: {
-				styles: [{ color: '#007bff', weight: 6 }],
-			  },
-			}).on('routeselected', function () {
-			  const routingContainer = document.querySelector('.leaflet-routing-container');
-			  if (routingContainer) {
-				routingContainer.style.display = 'none';
-			  }
-			}).addTo(map);
+            // Add routing control
+            routingControl = L.Routing.control({
+              waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
+              routeWhileDragging: false,
+              lineOptions: {
+                styles: [{ color: '#007bff', weight: 6 }],
+              },
+            })
+              .on('routesfound', function (e) {
+                const route = e.routes[0];
+                const instructionsContainer = document.getElementById('instructionsContent');
+                let html = '';
 
-			map.setView([latitude, longitude], 13); // Focus on user's location
-		  },
-		  (error) => {
-			console.error("Geolocation error:", error);
-			alert("Unable to retrieve your location. Please enable location services.");
-		  }
-		);
-	  } else {
-		alert("Geolocation is not supported by your browser.");
-	  }
-	}
+                // Loop through steps in the route and display them
+                route.instructions = route.legs[0].steps; // Extract steps
+                route.instructions.forEach((step, i) => {
+                  html += `<p>${i + 1}. ${step.instruction} <br><small>(${step.distance} meters)</small></p>`;
+                });
 
+                instructionsContainer.innerHTML = html;
+              })
+              .addTo(map);
+
+            map.setView([latitude, longitude], 13); // Focus on user's location
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            alert("Unable to retrieve your location. Please enable location services.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser.");
+      }
+    }
 
     document.getElementById('useLocation').addEventListener('click', getDirections);
   </script>
