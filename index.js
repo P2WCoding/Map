@@ -1,9 +1,8 @@
 const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');  // To allow cross-origin requests from GitHub Pages
-
+const cors = require('cors');
 const app = express();
-app.use(cors()); // Allow requests from your GitHub Pages domain
+
+app.use(cors()); // Allow requests from any origin (or specify your domain for security)
 app.use(express.json());
 
 const MAPBOX_SECRET_KEY = process.env.MAPBOX_SECRET_KEY; // Read secret key from environment variable
