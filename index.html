@@ -8,7 +8,7 @@
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -30,6 +30,8 @@
       padding: 10px;
       text-align: center;
       border-bottom: 1px solid #ccc;
+      position: relative;
+      z-index: 1000;
     }
 
     #controls button {
@@ -40,6 +42,7 @@
       border-radius: 5px;
       cursor: pointer;
       transition: background 0.3s;
+      z-index: 1001;
     }
 
     #controls button:hover {
@@ -81,74 +84,79 @@
   </div>
 
   <script>
-    const map = L.map('map').setView([39.6618797, -79.9539762], 14); // Default view at your location
+    document.addEventListener('DOMContentLoaded', () => {
+      const map = L.map('map').setView([39.6618797, -79.9539762], 14); // Default view at your location
 
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(map);
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
+      }).addTo(map);
 
-    // Fixed business location marker
-    const businessCoords = [39.6618797, -79.9539762]; // Your business coordinates
-    L.marker(businessCoords).addTo(map).bindPopup("Our New Location").openPopup();
+      // Fixed business location marker
+      const businessCoords = [39.6618797, -79.9539762]; // Your business coordinates
+      L.marker(businessCoords).addTo(map).bindPopup("Our New Location").openPopup();
 
-    let routingControl;
+      let routingControl;
 
-    function getDirections() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
+      function getDirections() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
 
-            // Remove existing route if any
-            if (routingControl) {
-              map.removeControl(routingControl);
-            }
+              // Remove existing route if any
+              if (routingControl) {
+                map.removeControl(routingControl);
+              }
 
-            // Add routing control with Mapbox
-            routingControl = L.Routing.control({
-              waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
-              router: L.Routing.mapbox('sk.eyJ1Ijoibmdvb2R3aW40NTMiLCJhIjoiY200OGpoZDd1MDA4dTJxcHNjZ2JqNG53bSJ9.uyVf3rOiysPwlXaml9d4gQ', {
-                profile: 'mapbox/driving', // Use 'mapbox/walking' or 'mapbox/cycling' if needed
-              }),
-              routeWhileDragging: false,
-              lineOptions: {
-                styles: [{ color: '#007bff', weight: 6 }],
-              },
-              show: false, // Hides the default UI
-            })
-              .on('routesfound', function (e) {
-                const route = e.routes[0];
-                if (!route || !route.legs[0]) {
-                  console.error("No route data available.");
-                  alert("Unable to calculate a route. Please try again.");
-                  return;
-                }
-
-                const instructionsContainer = document.getElementById('instructionsContent');
-                let html = `<h3>Directions</h3>`;
-                route.legs[0].steps.forEach((step, i) => {
-                  html += `<p>${i + 1}. ${step.instruction} <br><small>(${(step.distance / 1000).toFixed(2)} km)</small></p>`;
-                });
-
-                instructionsContainer.innerHTML = html; // Populate the custom instructions box
+              // Add routing control with Mapbox
+              routingControl = L.Routing.control({
+                waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
+                router: L.Routing.mapbox('pk.eyJ1Ijoibmdvb2R3aW40NTMiLCJhIjoiY200OGl0end2MDAxbzJqb3BkZ2x4MmFrZSJ9.MmBiTIM3QapCykGVoQmvXA', {
+                  profile: 'mapbox/driving', // Use 'mapbox/walking' or 'mapbox/cycling' if needed
+                }),
+                routeWhileDragging: false,
+                lineOptions: {
+                  styles: [{ color: '#007bff', weight: 6 }],
+                },
+                show: false, // Hides the default UI
               })
-              .addTo(map);
+                .on('routesfound', function (e) {
+                  const route = e.routes[0];
+                  if (!route || !route.legs[0]) {
+                    console.error("No route data available.");
+                    alert("Unable to calculate a route. Please try again.");
+                    return;
+                  }
 
-            map.setView([latitude, longitude], 13); // Focus on user's location
-          },
-          (error) => {
-            console.error("Geolocation error:", error);
-            alert("Unable to retrieve your location. Please enable location services.");
-          }
-        );
-      } else {
-        alert("Geolocation is not supported by your browser.");
+                  const instructionsContainer = document.getElementById('instructionsContent');
+                  let html = `<h3>Directions</h3>`;
+                  route.legs[0].steps.forEach((step, i) => {
+                    html += `<p>${i + 1}. ${step.instruction} <br><small>(${(step.distance / 1000).toFixed(2)} km)</small></p>`;
+                  });
+
+                  instructionsContainer.innerHTML = html; // Populate the custom instructions box
+                })
+                .addTo(map);
+
+              map.setView([latitude, longitude], 13); // Focus on user's location
+            },
+            (error) => {
+              console.error("Geolocation error:", error);
+              alert("Unable to retrieve your location. Please enable location services.");
+            }
+          );
+        } else {
+          alert("Geolocation is not supported by your browser.");
+        }
       }
-    }
 
-    document.getElementById('useLocation').addEventListener('click', getDirections);
+      document.getElementById('useLocation').addEventListener('click', () => {
+        console.log("Button clicked");
+        getDirections();
+      });
+    });
   </script>
 </body>
 </html>
