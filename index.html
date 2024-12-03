@@ -45,9 +45,9 @@
     }
 
     /* Hide unnecessary Leaflet routing controls */
-    .leaflet-control-container .leaflet-routing-container-hide {
-      display: none;
-    }
+    .leaflet-control-container .leaflet-routing-container {
+		display: none !important;
+	}
 </style>
 </head>
 <body>
@@ -75,36 +75,42 @@
     let routingControl;
 
     function getDirections() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
+	  if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(
+		  (position) => {
+			const { latitude, longitude } = position.coords;
 
-            // Remove existing route if any
-            if (routingControl) {
-              map.removeControl(routingControl);
-            }
+			// Remove existing route if any
+			if (routingControl) {
+			  map.removeControl(routingControl);
+			}
 
-            // Add routing control
-            routingControl = L.Routing.control({
-              waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
-              routeWhileDragging: false,
-              lineOptions: {
-                styles: [{ color: '#007bff', weight: 6 }],
-              },
-            }).addTo(map);
+			// Add routing control
+			routingControl = L.Routing.control({
+			  waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
+			  routeWhileDragging: false,
+			  lineOptions: {
+				styles: [{ color: '#007bff', weight: 6 }],
+			  },
+			}).on('routeselected', function () {
+			  const routingContainer = document.querySelector('.leaflet-routing-container');
+			  if (routingContainer) {
+				routingContainer.style.display = 'none';
+			  }
+			}).addTo(map);
 
-            map.setView([latitude, longitude], 13); // Focus on user's location
-          },
-          (error) => {
-            console.error("Geolocation error:", error);
-            alert("Unable to retrieve your location. Please enable location services.");
-          }
-        );
-      } else {
-        alert("Geolocation is not supported by your browser.");
-      }
-    }
+			map.setView([latitude, longitude], 13); // Focus on user's location
+		  },
+		  (error) => {
+			console.error("Geolocation error:", error);
+			alert("Unable to retrieve your location. Please enable location services.");
+		  }
+		);
+	  } else {
+		alert("Geolocation is not supported by your browser.");
+	  }
+	}
+
 
     document.getElementById('useLocation').addEventListener('click', getDirections);
   </script>
