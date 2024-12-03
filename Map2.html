@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Us</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Map container */
+    #map {
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Controls at the top */
+    #controls {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    #controls button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #controls button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <!-- Controls -->
+  <div id="controls">
+    <button id="useLocation">📍 Get Directions to Us</button>
+  </div>
+
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <script>
+    const map = L.map('map').setView([39.6618797, -79.9539762], 14); // Default view at your location
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
+
+    // Fixed business location marker
+    const businessCoords = [39.6618797, -79.9539762]; // Your business coordinates
+    L.marker(businessCoords).addTo(map).bindPopup("Our New Location").openPopup();
+
+    let routingControl;
+
+    function getDirections() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+
+            // Remove existing route if any
+            if (routingControl) {
+              map.removeControl(routingControl);
+            }
+
+            // Add routing control
+            routingControl = L.Routing.control({
+              waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
+              routeWhileDragging: false,
+              lineOptions: {
+                styles: [{ color: '#007bff', weight: 6 }],
+              },
+            }).addTo(map);
+
+            map.setView([latitude, longitude], 13); // Focus on user's location
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            alert("Unable to retrieve your location. Please enable location services.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser.");
+      }
+    }
+
+    document.getElementById('useLocation').addEventListener('click', getDirections);
+  </script>
+</body>
+</html>
