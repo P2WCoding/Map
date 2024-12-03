@@ -167,13 +167,14 @@
 				const { latitude, longitude } = position.coords;
 
 				// Send the coordinates to your backend server
-				fetch('https://map-ec27.onrender.com', {
+				fetch('https://map-ec27.onrender.com/get-route', { // Updated URL
 				  method: 'POST',
 				  headers: {
 					'Content-Type': 'application/json',
 				  },
 				  body: JSON.stringify({ userLocation: [latitude, longitude] }),
 				})
+
 				.then(response => response.json())
 				.then(data => {
 				  // Use the data (e.g., route details) received from the server to update the map
