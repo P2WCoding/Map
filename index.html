@@ -4,194 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Us</title>
-  
-  <!-- Ensure jQuery is loaded first -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.6.2/fetch.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mark/8.11.1/jquery.mark.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-  <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Map container */
-    #map {
-      flex: 1;
-      width: 100%;
-    }
-
-    /* Controls at the top */
-    #controls {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      text-align: center;
-      border-bottom: 1px solid #ccc;
-      position: relative;
-      z-index: 1000;
-    }
-
-    #controls button {
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
-      z-index: 1001;
-    }
-
-    #controls button:hover {
-      background: #0056b3;
-    }
-
-    /* Hide default Leaflet routing container */
-    .leaflet-control-container .leaflet-routing-container {
-      display: none !important;
-    }
-
-    /* Custom route instructions box */
-    #routeInstructions {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-top: 1px solid #ccc;
-      max-height: 30%;
-      overflow-y: auto;
-    }
-
-    #routeInstructions h3 {
-      margin-top: 0;
-    }
+    #map { height: 90vh; }
+    #controls { text-align: center; margin: 1em 0; }
   </style>
 </head>
 <body>
-  <!-- Controls -->
   <div id="controls">
-    <button id="useLocation">📍 Get Directions to Us</button>
+    <button id="useLocation">📍 Get Directions</button>
   </div>
-
-  <!-- Map Container -->
   <div id="map"></div>
 
-  <!-- Route Instructions -->
-  <div id="routeInstructions">
-    <h3>Directions</h3>
-    <div id="instructionsContent">Click "Get Directions to Us" to see the route.</div>
-  </div>
-
-  <script>
-    /* jshint esversion: 6 */
-	/* jshint node: true */
-
-	document.addEventListener('DOMContentLoaded', () => {
-	  const map = L.map('map').setView([39.6618797, -79.9539762], 14); // Default view at your location
-
-	  // Add OpenStreetMap tiles
-	  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		maxZoom: 19,
-		attribution: '© OpenStreetMap contributors',
-	  }).addTo(map);
-
-	  // Fixed business location marker
-	  const businessCoords = [39.6618797, -79.9539762]; // Your business coordinates
-	  L.marker(businessCoords).addTo(map).bindPopup("Our New Location").openPopup();
-
-	  let routingControl;
-
-	  function getDirections() {
-		if (navigator.geolocation) {
-		  navigator.geolocation.getCurrentPosition(
-			(position) => {
-			  const { latitude, longitude } = position.coords;
-
-			  // Remove existing route if any
-			  if (routingControl) {
-				map.removeControl(routingControl);
-			  }
-
-			  // Use a public access token (not a secret key)
-			  routingControl = L.Routing.control({
-				waypoints: [L.latLng(latitude, longitude), L.latLng(...businessCoords)],
-				router: L.Routing.mapbox('pk.eyJ1Ijoibmdvb2R3aW40NTMiLCJhIjoiY200OGl0end2MDAxbzJqb3BkZ2x4MmFrZSJ9.MmBiTIM3QapCykGVoQmvXA', {
-				  profile: 'mapbox/driving', // Ensure the token has the right permissions for this profile
-				}),
-				routeWhileDragging: false,
-				lineOptions: {
-				  styles: [{ color: '#007bff', weight: 6 }],
-				},
-				show: false,
-			  })
-				.on('routesfound', function (e) {
-				  const route = e.routes[0];
-				  if (!route || !route.legs[0]) {
-					console.error("No route data available.");
-					alert("Unable to calculate a route. Please try again.");
-					return;
-				  }
-
-				  const instructionsContainer = document.getElementById('instructionsContent');
-				  let html = `<h3>Directions</h3>`;
-				  route.legs[0].steps.forEach((step, i) => {
-					html += `<p>${i + 1}. ${step.instruction} <br><small>(${(step.distance / 1000).toFixed(2)} km)</small></p>`;
-				  });
-
-				  instructionsContainer.innerHTML = html; // Populate the custom instructions box
-				})
-				.addTo(map);
-
-			  map.setView([latitude, longitude], 13); // Focus on user's location
-			},
-			(error) => {
-			  console.error("Geolocation error:", error);
-			  alert("Unable to retrieve your location. Please enable location services.");
-			}
-		  );
-		} else {
-		  alert("Geolocation is not supported by your browser.");
-		}
-	  }
-
-	  // Native fetch API for the browser
-	document.getElementById('useLocation').addEventListener('click', () => {
-	  if (navigator.geolocation) {
-		navigator.geolocation.getCurrentPosition(
-		  (position) => {
-			const { latitude, longitude } = position.coords;
-
-			fetch('https://map-ec27.onrender.com/get-route', {
-			  method: 'POST',
-			  headers: { 'Content-Type': 'application/json' },
-			  body: JSON.stringify({ userLocation: [latitude, longitude] }),
-			})
-			  .then((response) => response.json())
-			  .then((data) => {
-				console.log('Route data:', data);
-			  })
-			  .catch((error) => console.error('Error fetching route:', error));
-		  },
-		  (error) => {
-			console.error('Geolocation error:', error);
-			alert('Unable to retrieve location. Please enable location services.');
-		  }
-		);
-	  } else {
-		alert('Geolocation is not supported by your browser.');
-	  }
-	});
-
-  </script>
- <script type="module" src="index.js"></script>
+  <script type="module" src="index.js"></script>
 </body>
 </html>

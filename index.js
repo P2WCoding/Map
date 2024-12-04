@@ -1,54 +1,42 @@
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch');
-require('dotenv').config();
+document.getElementById('useLocation').addEventListener('click', () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
 
-const app = express();
-const MAPBOX_SECRET_KEY = process.env.MAPBOX_SECRET_KEY;
+        fetch('https://map-ec27.onrender.com/get-route', { // Backend URL
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userLocation: [latitude, longitude] }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log('Route data:', data);
+            // Use Leaflet to display the route
+            const map = L.map('map').setView([latitude, longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '© OpenStreetMap contributors',
+            }).addTo(map);
 
-if (!MAPBOX_SECRET_KEY) {
-  throw new Error('MAPBOX_SECRET_KEY is not defined in the environment variables.');
-}
+            const waypoints = [
+              L.latLng(latitude, longitude),
+              L.latLng(39.6618797, -79.9539762),
+            ];
 
-app.use(cors({ origin: 'https://p2wcoding.github.io/Map/' }));
-app.use(express.json());
-
-app.post('/get-route', async (req, res) => {
-  const { userLocation } = req.body;
-  const businessCoords = [39.6618797, -79.9539762];
-
-  if (
-    !Array.isArray(userLocation) ||
-    userLocation.length !== 2 ||
-    typeof userLocation[0] !== 'number' ||
-    typeof userLocation[1] !== 'number' ||
-    userLocation[0] < -90 ||
-    userLocation[0] > 90 ||
-    userLocation[1] < -180 ||
-    userLocation[1] > 180
-  ) {
-    return res.status(400).send({ error: 'Invalid user location' });
-  }
-
-  try {
-    const response = await fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/driving/${userLocation[1]},${userLocation[0]};${businessCoords[1]},${businessCoords[0]}?access_token=${MAPBOX_SECRET_KEY}`
+            L.Routing.control({
+              waypoints,
+              routeWhileDragging: true,
+            }).addTo(map);
+          })
+          .catch((error) => console.error('Error fetching route:', error));
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Unable to retrieve location. Please enable location services.');
+      }
     );
-
-    if (!response.ok) {
-      console.error(`Mapbox API error: ${response.status} ${response.statusText}`);
-      throw new Error('Failed to fetch route from Mapbox API');
-    }
-
-    const routeData = await response.json();
-    res.status(200).json(routeData);
-  } catch (error) {
-    console.error('Error fetching route:', error);
-    res.status(500).send({ error: 'Failed to get route. Please try again later.' });
+  } else {
+    alert('Geolocation is not supported by your browser.');
   }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
 });
