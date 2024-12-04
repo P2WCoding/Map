@@ -1,12 +1,18 @@
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch');
-const app = express();
+import express from 'express';
+import cors from 'cors';
+import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+import app from express();
+dotenv.config();
 
 app.use(cors());
 app.use(express.json());
 
 const MAPBOX_SECRET_KEY = process.env.MAPBOX_SECRET_KEY; // Read secret key from environment
+	if (!MAPBOX_SECRET_KEY) {
+  throw new Error('MAPBOX_SECRET_KEY is not defined in the environment variables.');
+}
+
 
 app.post('/get-route', async (req, res) => {
   const { userLocation } = req.body;
