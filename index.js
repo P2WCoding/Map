@@ -1,18 +1,22 @@
-let map;
+let map; // Global map variable
 
 document.getElementById('useLocation').addEventListener('click', () => {
+  console.log('Button clicked'); // Debugging log
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
+        console.log('User location:', latitude, longitude); // Debugging log
 
-        // If the map already exists, remove it before creating a new one
+        // Check if map exists and remove it
         if (map) {
-          map.remove(); // Clear the map instance
+          map.remove();
+          console.log('Old map removed');
         }
 
         // Initialize the map
         map = L.map('map').setView([latitude, longitude], 13);
+        console.log('Map initialized at:', latitude, longitude); // Debugging log
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -20,8 +24,11 @@ document.getElementById('useLocation').addEventListener('click', () => {
           attribution: '© OpenStreetMap contributors',
         }).addTo(map);
 
-        // Optionally add a marker to the map
-        L.marker([latitude, longitude]).addTo(map).bindPopup('You are here!').openPopup();
+        // Add a marker for user's location
+        L.marker([latitude, longitude])
+          .addTo(map)
+          .bindPopup('You are here!')
+          .openPopup();
       },
       (error) => {
         console.error('Geolocation error:', error);
