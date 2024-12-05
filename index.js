@@ -1,15 +1,4 @@
-// Initialize the map
-const map = L.map('map').setView([39.6618797, -79.9539762], 13); // Default location and zoom
-
-// Add OpenStreetMap tiles
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '© OpenStreetMap contributors',
-}).addTo(map);
-
-// Add a marker for your location
-const businessCoords = [39.6618797, -79.9539762];
-L.marker(businessCoords).addTo(map).bindPopup('Our Business Location').openPopup();
+let map; // Declare the map variable globally
 
 document.getElementById('useLocation').addEventListener('click', () => {
   if (navigator.geolocation) {
@@ -17,7 +6,22 @@ document.getElementById('useLocation').addEventListener('click', () => {
       (position) => {
         const { latitude, longitude } = position.coords;
 
-        fetch('https://map-ec27.onrender.com/get-route', { // Backend URL
+        // If the map already exists, remove it before reinitializing
+        if (map) {
+          map.remove(); // Clear the previous map instance
+        }
+
+        // Initialize the map
+        map = L.map('map').setView([latitude, longitude], 13);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap contributors',
+        }).addTo(map);
+
+        // Fetch route data
+        fetch('https://map-ec27.onrender.com/get-route', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userLocation: [latitude, longitude] }),
@@ -25,17 +29,11 @@ document.getElementById('useLocation').addEventListener('click', () => {
           .then((response) => response.json())
           .then((data) => {
             console.log('Route data:', data);
-            // Use Leaflet to display the route
-            const map = L.map('map').setView([latitude, longitude], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              maxZoom: 19,
-              attribution: '© OpenStreetMap contributors',
-            }).addTo(map);
 
-            const waypoints = [
-              L.latLng(latitude, longitude),
-              L.latLng(39.6618797, -79.9539762),
-            ];
+            // Add routing to the map using waypoints
+            const waypoints = data.routes[0].geometry.coordinates.map(([lng, lat]) =>
+              L.latLng(lat, lng)
+            );
 
             L.Routing.control({
               waypoints,
