@@ -10,7 +10,7 @@ if (!MAPBOX_SECRET_KEY) {
   throw new Error('MAPBOX_SECRET_KEY is not defined in the environment variables.');
 }
 
-app.use(cors({ origin: 'https://p2wcoding.github.io/Map/' })); // Update with your GitHub Pages URL
+app.use(cors({ origin: 'https://p2wcoding.github.io' })); // Update to your actual domain
 app.use(express.json());
 
 app.post('/get-route', async (req, res) => {
