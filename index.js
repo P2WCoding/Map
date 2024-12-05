@@ -1,3 +1,16 @@
+// Initialize the map
+const map = L.map('map').setView([39.6618797, -79.9539762], 13); // Default location and zoom
+
+// Add OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '© OpenStreetMap contributors',
+}).addTo(map);
+
+// Add a marker for your location
+const businessCoords = [39.6618797, -79.9539762];
+L.marker(businessCoords).addTo(map).bindPopup('Our Business Location').openPopup();
+
 document.getElementById('useLocation').addEventListener('click', () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
