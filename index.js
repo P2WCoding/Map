@@ -1,4 +1,4 @@
-let map; // Declare map globally to track its state
+let map;
 
 document.getElementById('useLocation').addEventListener('click', () => {
   if (navigator.geolocation) {
@@ -6,9 +6,9 @@ document.getElementById('useLocation').addEventListener('click', () => {
       (position) => {
         const { latitude, longitude } = position.coords;
 
-        // Check if the map is already initialized and remove it
+        // If the map already exists, remove it before creating a new one
         if (map) {
-          map.remove(); // Clear the existing map instance
+          map.remove(); // Clear the map instance
         }
 
         // Initialize the map
@@ -20,28 +20,8 @@ document.getElementById('useLocation').addEventListener('click', () => {
           attribution: '© OpenStreetMap contributors',
         }).addTo(map);
 
-        // Fetch route data from the backend
-        fetch('https://map-ec27.onrender.com/get-route', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userLocation: [latitude, longitude] }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log('Route data:', data);
-
-            // Use waypoints to draw the route
-            const waypoints = [
-              L.latLng(latitude, longitude),
-              L.latLng(39.6618797, -79.9539762), // Example destination (update as needed)
-            ];
-
-            L.Routing.control({
-              waypoints,
-              routeWhileDragging: true,
-            }).addTo(map);
-          })
-          .catch((error) => console.error('Error fetching route:', error));
+        // Optionally add a marker to the map
+        L.marker([latitude, longitude]).addTo(map).bindPopup('You are here!').openPopup();
       },
       (error) => {
         console.error('Geolocation error:', error);
